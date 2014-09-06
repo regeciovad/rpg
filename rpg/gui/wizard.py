@@ -150,6 +150,7 @@ class ImportPage(QtWidgets.QWizardPage):
         self.importLabel.setCursor(QtGui.QCursor(QtCore.Qt.WhatsThisCursor))
         self.importLabel.setToolTip("Text for import label")
         self.importEdit.textChanged.connect(self.checkPath)
+        self.importEdit.setMinimumHeight(34)
 
         self.importButton = QPushButton("Import")
         self.importButton.setMinimumHeight(45)
