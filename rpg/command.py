@@ -59,6 +59,6 @@ class Command:
 
 
 def cmd_output(cmdlines):
-    output = check_output(["/bin/sh", "-c", " && ".join(cmdlines)])
+    output = check_output(["/bin/sh", "-c", " && ".join(cmdlines], stderr=None)
     # TODO don't print stdout of commands
     return output.decode('utf-8')
