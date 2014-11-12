@@ -14,6 +14,9 @@ class PythonPlugin(Plugin):
 
             for name, mod in mod.modules.items():
                 if mod.__file__:
+                    # replace path:
+                    # "/usr/lib/python3.*/" -> "%{python3_sitearch}/"
+                    # "/usr/lib/python2.*/" -> "%{python_sitearch}/"
                     spec.Requires.append(mod.__file__)
 
             # TODO add to set instead of list

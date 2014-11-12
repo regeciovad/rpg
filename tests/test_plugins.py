@@ -74,7 +74,7 @@ class FindPatchPluginTest(PluginTestCase):
         arch = get_architecture()
         if arch == 32:
             arch = ""
-        imports = [("/usr/lib{0}/python{1}.{2}/" +
+        imports = [("%{{python3_sitearch}}/" +
                     "lib-dynload/math.cpython-{1}{2}m.so")
                    .format(arch, version.major, version.minor),
                    str(self.test_project_dir / "py" /
