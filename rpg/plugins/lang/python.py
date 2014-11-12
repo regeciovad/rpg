@@ -15,3 +15,8 @@ class PythonPlugin(Plugin):
             for name, mod in mod.modules.items():
                 if mod.__file__:
                     spec.Requires.append(mod.__file__)
+
+            # TODO add to set instead of list
+            # TODO proceed all *.py files and add to set:
+            #   "from ([^\s.]) import" -> s.add(%{python3_sitearch}/\1)
+            #   "import ([^\s.])" -> s.add(%{python3_sitearch}/\1)
