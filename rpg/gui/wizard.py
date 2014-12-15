@@ -648,6 +648,8 @@ class BuildPage(QtWidgets.QWizardPage):
         mainLayout.addLayout(lowerLayout)
         self.setLayout(mainLayout)
 
+        print("### spec >\n", self.base.spec, "\n### spec <")
+
     def validatePage(self):
         self.base.build_packages()
         return True
