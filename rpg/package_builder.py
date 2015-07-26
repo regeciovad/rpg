@@ -45,7 +45,6 @@ class PackageBuilder(object):
                 )
             )
         )
-
     @staticmethod
     def fetch_repos(dist, arch):
         logging.info("New thread for fetch repos started")
