@@ -1,5 +1,6 @@
 from tests.support import RpgTestCase
 from rpg import Base
+import re
 
 
 class FunctionalTest(RpgTestCase):
@@ -21,7 +22,6 @@ class FunctionalTest(RpgTestCase):
         expected_required_files = {
             '/usr/include/bits/wordsize.h',
             '/usr/include/bits/typesizes.h',
-            '/usr/lib/gcc/x86_64-redhat-linux/5.1.1/include/stdarg.h',
             '/usr/include/bits/stdio_lim.h',
             '/usr/include/bits/sys_errlist.h',
             '/usr/include/features.h',
@@ -32,11 +32,11 @@ class FunctionalTest(RpgTestCase):
             '/usr/include/wchar.h',
             '/usr/include/stdio.h',
             '/usr/include/sys/cdefs.h',
-            '/usr/lib/gcc/x86_64-redhat-linux/5.1.1/include/stddef.h',
             '/usr/include/libio.h',
-            '/usr/include/gnu/stubs-64.h'
+            '/usr/lib/gcc/[^/]*-redhat-linux/\d+.\d+.\d+./include/stddef.h',
+            '/usr/include/gnu/stubs-64.h',
+            '/usr/lib/gcc/[^/]*-redhat-linux/\d+.\d+.\d+./include/stdarg.h'
         }
-        expected_build_required_files = expected_required_files
         dirs = [
             "Makefile",
             "hello.c",
@@ -44,10 +44,11 @@ class FunctionalTest(RpgTestCase):
         ]
         base.run_installed_source_analysis()
         self.assertEqual(set(["make"]), base.spec.BuildRequires)
-        self.assertEqual(expected_required_files,
-                         set(base.spec.required_files))
-        self.assertEqual(expected_build_required_files,
-                         set(base.spec.build_required_files))
+        ref_re = [re.compile(r) for r in expected_required_files]
+        output = self.assertRegexMatch(ref_re, base.spec.required_files)
+        self.assertEqual(len(output), len(expected_required_files))
+        output = self.assertRegexMatch(ref_re, base.spec.build_required_files)
+        self.assertEqual(len(output), len(expected_required_files))
         self.assertExistInDir(["Makefile", "hello.c"], base.extracted_dir)
         base.build_project()
         self.assertExistInDir(dirs, base.compiled_dir)

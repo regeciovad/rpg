@@ -13,8 +13,7 @@ from unittest import mock
 from rpg.plugins.project_builder.cmake import CMakePlugin
 from rpg.plugins.project_builder.setuptools import SetuptoolsPlugin
 from rpg.plugins.project_builder.autotools import AutotoolsPlugin
-from rpg.command import Command
-from os.path import isfile, isdir
+import re
 
 
 class MockSack:
@@ -143,8 +142,6 @@ class FindPatchPluginTest(PluginTestCase):
             "/usr/include/sys/cdefs.h",
             "/usr/include/bits/wordsize.h",
             "/usr/include/gnu/stubs.h",
-            "/usr/include/gnu/stubs-64.h",
-            "/usr/lib/gcc/x86_64-redhat-linux/5.1.1/include/stddef.h",
             "/usr/include/bits/stdlib-float.h",
             "/usr/include/stdio.h",
             "/usr/include/bits/types.h",
@@ -152,12 +149,17 @@ class FindPatchPluginTest(PluginTestCase):
             "/usr/include/libio.h",
             "/usr/include/_G_config.h",
             "/usr/include/wchar.h",
-            "/usr/lib/gcc/x86_64-redhat-linux/5.1.1/include/stdarg.h",
             "/usr/include/bits/stdio_lim.h",
-            "/usr/include/bits/sys_errlist.h"
+            "/usr/include/bits/sys_errlist.h",
+            '/usr/lib/gcc/[^/]*-redhat-linux/\d+.\d+.\d+./include/stddef.h',
+            '/usr/include/gnu/stubs-64.h',
+            '/usr/lib/gcc/[^/]*-redhat-linux/\d+.\d+.\d+./include/stdarg.h'
         ])
-        self.assertEqual(self.spec.required_files, expected)
-        self.assertEqual(self.spec.build_required_files, expected)
+        ref_re = [re.compile(r) for r in expected]
+        output = self.assertRegexMatch(ref_re, self.spec.required_files)
+        self.assertEqual(len(output), len(expected))
+        output = self.assertRegexMatch(ref_re, self.spec.build_required_files)
+        self.assertEqual(len(output), len(expected))
 
     def test_cmake(self):
         cmakeplug = CMakePlugin()
