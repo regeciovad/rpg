@@ -17,6 +17,9 @@ from os import makedirs
 from os import geteuid
 from os import remove
 import shutil
+import time
+from multiprocessing import Pipe, Process
+from threading import Thread
 
 
 class Base(object):
@@ -186,12 +189,20 @@ class Base(object):
         with open(str(self.spec_path), 'w') as spec_file:
             spec_file.write(str(self.spec))
 
-    def build_srpm(self):
-        if not self.spec.Source or not self.archive_path.exists():
-            self.create_archive()
-        self.write_spec()
-        self._package_builder.build_srpm(
-            self.spec_path, self.archive_path, self.base_dir)
+    def bu(self, func=None, *args):
+        while(True):
+            line = "Geronimo~!"
+            time.sleep(1)
+            if func:
+                func(line)
+
+    def build_srpm(self, func=None, *args):
+        self.bu(func, args)
+        #if not self.spec.Source or not self.archive_path.exists():
+            #self.create_archive()
+        #self.write_spec()
+        #self._package_builder.build_srpm(
+            #self.spec_path, self.archive_path, self.base_dir)
 
     def build_rpm(self, target_distro, target_arch):
         try:

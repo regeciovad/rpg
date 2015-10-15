@@ -1,8 +1,9 @@
 from os.path import expanduser
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import (QLabel, QVBoxLayout, QLineEdit, QCheckBox,
                              QGroupBox, QPushButton, QGridLayout,
-                             QTextEdit, QFileDialog,
+                             QTextEdit, QFileDialog, QDialog,
                              QComboBox, QWizard, QFrame)
 from rpg.gui.dialogs import DialogImport
 from rpg.utils import path_to_str
@@ -10,8 +11,12 @@ from pathlib import Path
 from rpg.command import Command
 import subprocess
 import platform
-from threading import Thread
-
+from threading import *
+import time
+from multiprocessing import Process, Pipe
+import sys
+import os
+import signal
 
 class Wizard(QtWidgets.QWizard):
 
@@ -60,7 +65,7 @@ class Wizard(QtWidgets.QWizard):
         self.setPage(self.PageCoprDistro, CoprDistroPage(self))
         self.setPage(self.PageCoprBuild, CoprBuildPage(self))
         self.setPage(self.PageCoprFinal, CoprFinalPage(self))
-        self.setStartId(self.PageIntro)
+        self.setStartId(self.PageBuild)
 
 
 class IntroPage(QtWidgets.QWizardPage):
@@ -1020,14 +1025,53 @@ class BuildPage(QtWidgets.QWizardPage):
         self.buildLocationEdit.setText(self.getPath)
 
     def buildSrpm(self):
+        self.parent_conn, self.child_conn = Pipe()
+        self.srpm_dialog = QDialog(self)
+        self.srpm_dialog.resize(600,400)
+        self.srpm_dialog.setWindowTitle('Building SRPM')
+        self.srpm_progress = QTextEdit()
+        #self.srpm_progress.setReadOnly(True)
+        self.srpm_progress.setText('Building SRPM...')
+        self.cancelButton = QPushButton('Cancel')
+        self.cancelButton.setMinimumHeight(45)
+        self.cancelButton.setMaximumHeight(45)
+        self.cancelButton.setMinimumWidth(100)
+        self.cancelButton.setMaximumWidth(115)
+        self.cancelButton.clicked.connect(self.CancelSRPM)
+
+        mainLayout = QVBoxLayout()
+        mainLayout.addSpacing(50)
+        mainLayout.addWidget(self.srpm_progress)
+        mainLayout.addSpacing(50)
+        grid = QGridLayout()
+        grid.addWidget(self.cancelButton)
+        mainLayout.addLayout(grid)
+        self.srpm_dialog.setLayout(mainLayout)
         self.textBuildSRPMLabel.setText('Building SRPM...')
         self.textBuildSRPMLabel.repaint()
-        self.base.build_srpm()
-        Command("cp " + path_to_str(self.base.srpm_path) + " " +
-                self.buildLocationEdit.text()).execute()
-        self.base.final_path = self.buildLocationEdit.text()
-        self.textBuildSRPMLabel.setText('Your source package was build in '
-                                        + self.base.final_path)
+        self.base.load_project_from_url('/home/dominika/Downloads/rpg-rpg-0.0.3-1.tar.gz')
+        #self.base_dir = Path('/home/dominika/Downloads')
+        #self.base.spec_path = self.base_dir / Path('rpg.spec')
+        #self.base.archive_path = self.base_dir / Path('rpg-rpg-0.0.3-1.tar.gz')
+        self.srpm_dialog.show()
+        self.srpm_process = Process(target=self.base.build_srpm, args=(self.process_output, self, ))
+        self.srpm_process.deamon = True
+        self.srpm_process.start()
+        #Command("cp " + path_to_str(self.base.srpm_path) + " " +
+                #self.buildLocationEdit.text()).execute()
+        #self.base.final_path = self.buildLocationEdit.text()
+        #self.textBuildSRPMLabel.setText('Your source package was build in '
+                                        #+ self.base.final_path)
+
+    def CancelSRPM(self):
+        self.srpm_dialog.close()
+        self.srpm_process.terminate()
+        
+
+    def process_output(self, line):
+        print(line)
+        self.srpm_progress.append(line)
+        self.srpm_progress.moveCursor(QTextCursor.End)
 
     def buildRpm(self):
         self.textBuildRPMLabel.setText('Building RPM...')
