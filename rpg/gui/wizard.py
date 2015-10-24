@@ -2,15 +2,15 @@ from os.path import expanduser
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import (QLabel, QVBoxLayout, QLineEdit, QCheckBox,
                              QGroupBox, QPushButton, QGridLayout,
-                             QTextEdit, QFileDialog,
+                             QTextEdit, QFileDialog, QDialog,
                              QComboBox, QWizard, QFrame)
 from rpg.gui.dialogs import DialogImport
-from rpg.utils import path_to_str
 from pathlib import Path
 from rpg.command import Command
 import subprocess
 import platform
 from threading import Thread
+from rpg.gui.thread import ThreadWrapper
 
 
 class Wizard(QtWidgets.QWizard):
@@ -60,7 +60,7 @@ class Wizard(QtWidgets.QWizard):
         self.setPage(self.PageCoprDistro, CoprDistroPage(self))
         self.setPage(self.PageCoprBuild, CoprBuildPage(self))
         self.setPage(self.PageCoprFinal, CoprFinalPage(self))
-        self.setStartId(self.PageIntro)
+        self.setStartId(self.PageImport)
 
 
 class IntroPage(QtWidgets.QWizardPage):
@@ -1022,10 +1022,38 @@ class BuildPage(QtWidgets.QWizardPage):
     def buildSrpm(self):
         self.textBuildSRPMLabel.setText('Building SRPM...')
         self.textBuildSRPMLabel.repaint()
-        self.base.build_srpm()
-        Command("cp " + path_to_str(self.base.srpm_path) + " " +
-                self.buildLocationEdit.text()).execute()
         self.base.final_path = self.buildLocationEdit.text()
+
+        self.srpm_dialog = QDialog(self)
+        self.srpm_dialog.resize(600, 400)
+        self.srpm_dialog.setWindowTitle('Building SRPM')
+        self.srpm_progress = QTextEdit()
+        self.srpm_progress.setReadOnly(True)
+        self.srpm_progress.setText('Building SRPM...')
+        self.cancelButton = QPushButton('Cancel')
+        self.cancelButton.setMinimumHeight(45)
+        self.cancelButton.setMaximumHeight(45)
+        self.cancelButton.setMinimumWidth(100)
+        self.cancelButton.setMaximumWidth(115)
+        self.cancelButton.clicked.connect(self.CancelSRPM)
+        mainLayout = QVBoxLayout()
+        mainLayout.addSpacing(50)
+        mainLayout.addWidget(self.srpm_progress)
+        mainLayout.addSpacing(50)
+        grid = QGridLayout()
+        grid.addWidget(self.cancelButton)
+        mainLayout.addLayout(grid)
+        self.srpm_dialog.setLayout(mainLayout)
+
+        self.srpm_dialog.show()
+        self.srpm_process = ThreadWrapper(self.srpm_progress,
+                                          self.base.build_srpm,
+                                          self.base.final_path)
+        self.srpm_process.run()
+
+    def CancelSRPM(self):
+        self.srpm_dialog.close()
+        self.srpm_process.kill()
         self.textBuildSRPMLabel.setText('Your source package was build in '
                                         + self.base.final_path)
 

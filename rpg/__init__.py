@@ -220,13 +220,17 @@ class Base(object):
         with open(str(self.spec_path), 'w') as spec_file:
             spec_file.write(str(self.spec))
 
-    def build_srpm(self):
+    def build_srpm(self, path=None):
         """ Builds srpm into base directory. """
         if not self.spec.Source or not self.archive_path.exists():
             self.create_archive()
         self.write_spec()
         self._package_builder.build_srpm(
             self.spec_path, self.archive_path, self.base_dir)
+        if path:
+            Command("cp " + path_to_str(self.srpm_path) + " " +
+                str(path)).execute()
+        print ('SRPM pakcage was created.')
 
     def build_rpm(self, target_distro, target_arch):
         """ Build rpm from srpm. If srpm does not exists,
