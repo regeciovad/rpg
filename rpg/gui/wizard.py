@@ -1059,15 +1059,42 @@ class BuildPage(QtWidgets.QWizardPage):
 
     def buildRpm(self):
         self.textBuildRPMLabel.setText('Building RPM...')
-        self.textBuildSRPMLabel.repaint()
+        self.textBuildRPMLabel.repaint()
         self.base.final_path = self.buildLocationEdit.text()
+
+        self.rpm_dialog = QDialog(self)
+        self.rpm_dialog.resize(600, 400)
+        self.rpm_dialog.setWindowTitle('Building RPM')
+        self.rpm_progress = QTextEdit()
+        self.rpm_progress.setReadOnly(True)
+        self.rpm_progress.setText('Building RPM...')
+        self.cancelButton = QPushButton('Cancel')
+        self.cancelButton.setMinimumHeight(45)
+        self.cancelButton.setMaximumHeight(45)
+        self.cancelButton.setMinimumWidth(100)
+        self.cancelButton.setMaximumWidth(115)
+        self.cancelButton.clicked.connect(self.CancelRPM)
+        mainLayout = QVBoxLayout()
+        mainLayout.addSpacing(50)
+        mainLayout.addWidget(self.rpm_progress)
+        mainLayout.addSpacing(50)
+        grid = QGridLayout()
+        grid.addWidget(self.cancelButton)
+        mainLayout.addLayout(grid)
+        self.rpm_dialog.setLayout(mainLayout)
+
         arch = self.BuildArchEdit.currentText()
         distro = self.BuildDistroEdit.currentText()
-        self.base.build_rpm_recover(distro, arch)
-        packages = self.base.rpm_path
-        for package in packages:
-            Command("cp " + str(package) + " " +
-                    self.base.final_path).execute()
+        self.rpm_dialog.show()
+        self.rpm_process = ThreadWrapper(self.rpm_progress,
+                                         self.base.build_rpm_recover,
+                                         distro, arch,
+                                         self.base.final_path)
+        self.rpm_process.run()
+
+    def CancelRPM(self):
+        self.rpm_dialog.close()
+        self.rpm_process.kill()
         self.textBuildRPMLabel.setText(
             'Your package was build in ' + self.base.final_path)
 

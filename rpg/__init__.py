@@ -229,10 +229,10 @@ class Base(object):
             self.spec_path, self.archive_path, self.base_dir)
         if path:
             Command("cp " + path_to_str(self.srpm_path) + " " +
-                str(path)).execute()
+                    str(path)).execute()
         print ('SRPM pakcage was created.')
 
-    def build_rpm(self, target_distro, target_arch):
+    def build_rpm(self, target_distro, target_arch, path=None):
         """ Build rpm from srpm. If srpm does not exists,
             it will be created. """
         try:
@@ -241,14 +241,18 @@ class Base(object):
             self.build_srpm()
         self._package_builder.build_rpm(
             str(self.srpm_path), target_distro, target_arch, self.base_dir)
+        if path:
+            packages = self.rpm_path
+            for package in packages:
+                Command("cp " + str(package) + " " + path).execute()
 
-    def build_rpm_recover(self, distro, arch):
+    def build_rpm_recover(self, distro, arch, path=None):
         """ Repeatedly build rpm with mock and finds all build errors.
             May raise RuntimeError on failed recover. """
 
         def build():
             self.build_srpm()
-            self.build_rpm(distro, arch)
+            self.build_rpm(distro, arch, path)
 
         def analyse():
             _files_to_pkgs.installed(self.base_dir, self.spec, self.sack)

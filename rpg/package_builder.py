@@ -83,6 +83,7 @@ class PackageBuilder(object):
                 line = proc.stdout.readline().decode("utf-8")
                 if self._regex.search(line):
                     yield line
+                print(line)
             self.build_ret_code = proc.returncode
 
         _ret = list(
