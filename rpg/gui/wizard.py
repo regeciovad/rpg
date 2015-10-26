@@ -60,7 +60,7 @@ class Wizard(QtWidgets.QWizard):
         self.setPage(self.PageCoprDistro, CoprDistroPage(self))
         self.setPage(self.PageCoprBuild, CoprBuildPage(self))
         self.setPage(self.PageCoprFinal, CoprFinalPage(self))
-        self.setStartId(self.PageImport)
+        self.setStartId(self.PageIntro)
 
 
 class IntroPage(QtWidgets.QWizardPage):
@@ -235,15 +235,23 @@ class ImportPage(QtWidgets.QWizardPage):
             self.base.target_distro = self.DistroEdit.currentText()
             self.base.load_project_from_url(self.importEdit.text().strip())
             self.base.run_extracted_source_analysis()
-            new_thread = Thread(
+            self.new_thread = Thread(
                 target=self.base.fetch_repos, args=(self.base.target_distro,
                                                     self.base.target_arch))
-            new_thread.start()
+            self.new_thread.start()
             self.importEdit.setStyleSheet("")
             return True
         else:
             self.importEdit.setStyleSheet(self.redQLineEdit)
             return False
+
+    def cleanupPage(self):
+        """ Stops the thread (there are no official way to stop thread.
+            This will unlocked thread and it will be stopped
+            with GUI - without error). """
+        self.new_thread._tstate_lock = None
+        self.new_thread._stop()
+        self.new_thread.join()
 
     def nextId(self):
         ''' [int] Function that determines the next page after the current one
