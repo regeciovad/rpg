@@ -282,7 +282,10 @@ class MandatoryPage(QtWidgets.QWizardPage):
                              "rgb(233,233,233);}")
 
         self.setTitle(self.tr("    Mandatory fields"))
-        self.setSubTitle(self.tr("Basic required information"))
+        self.setSubTitle(self.tr("Basic required information. " +
+                                 "Name, version and release " +
+                                 "will be used to create unique " +
+                                 "package name."))
 
         self.nameLabel = QLabel("Name<font color=\'#FF3333\'>*</font>")
         self.nameEdit = QLineEdit()
