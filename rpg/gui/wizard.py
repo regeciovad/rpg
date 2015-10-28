@@ -2,7 +2,7 @@ from os.path import expanduser
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import (QLabel, QVBoxLayout, QLineEdit, QCheckBox,
                              QGroupBox, QPushButton, QGridLayout,
-                             QTextEdit, QFileDialog, QDialog,
+                             QPlainTextEdit, QFileDialog, QDialog,
                              QComboBox, QWizard, QFrame)
 from rpg.gui.dialogs import DialogImport
 from pathlib import Path
@@ -39,7 +39,7 @@ class Wizard(QtWidgets.QWizard):
                     QWizard.BackButton, QWizard.NextButton,
                     QWizard.FinishButton])
         self.setButtonLayout(btnList)
-        self.setStyleSheet("QTextEdit { border-style: solid;" +
+        self.setStyleSheet("QPlainTextEdit { border-style: solid;" +
                            "border-width: 1px;" +
                            "border-color: rgb(178, 182, 178);" +
                            "border-radius: 3px;" +
@@ -439,7 +439,7 @@ class SummaryPage(QtWidgets.QWizardPage):
              "American English (required)."))
 
         self.descriptionLabel = QLabel("Description")
-        self.descriptionEdit = QTextEdit()
+        self.descriptionEdit = QPlainTextEdit()
         self.descriptionEdit.setMinimumHeight(30)
         self.descriptionLabel.setBuddy(self.descriptionEdit)
         self.descriptionLabelText = QLabel(
@@ -492,9 +492,9 @@ class SummaryPage(QtWidgets.QWizardPage):
 class ScriptsPage(QtWidgets.QWizardPage):
 
     def initializePage(self):
-        self.prepareEdit.setText(str(self.base.spec.prep))
-        self.buildEdit.setText(str(self.base.spec.build))
-        self.checkEdit.setText(str(self.base.spec.check))
+        self.prepareEdit.insertPlainText(str(self.base.spec.prep))
+        self.buildEdit.insertPlainText(str(self.base.spec.build))
+        self.checkEdit.insertPlainText(str(self.base.spec.check))
 
     def __init__(self, Wizard, parent=None):
         super(ScriptsPage, self).__init__(parent)
@@ -513,7 +513,7 @@ class ScriptsPage(QtWidgets.QWizardPage):
             "</p></body></html>")
 
         prepareLabel = QLabel("%prepare: ")
-        self.prepareEdit = QTextEdit()
+        self.prepareEdit = QPlainTextEdit()
         prepareLabelText = QLabel(
             self.base.tip_html_style %
             ("Script commands to prepare the program (e.g. to "
@@ -522,14 +522,14 @@ class ScriptsPage(QtWidgets.QWizardPage):
              "%autosetup -n NAME if the source file unpacks into NAME."))
 
         buildLabel = QLabel("%build: ")
-        self.buildEdit = QTextEdit()
+        self.buildEdit = QPlainTextEdit()
         buildLabelText = QLabel(
             self.base.tip_html_style %
             ("Script commands to build the program (e.g. to compile it)"
              " and get it ready for installing."))
 
         checkLabel = QLabel("%check: ")
-        self.checkEdit = QTextEdit()
+        self.checkEdit = QPlainTextEdit()
         checkLabelText = QLabel(
             self.base.tip_html_style %
             "Script commands to test the program.")
@@ -601,10 +601,10 @@ class ScriptsPage(QtWidgets.QWizardPage):
 class InstallPage(QtWidgets.QWizardPage):
 
     def initializePage(self):
-        self.installEdit.setText(str(self.base.spec.install))
-        self.pretransEdit.setText(str(self.base.spec.pretrans))
-        self.preEdit.setText(str(self.base.spec.pre))
-        self.postEdit.setText(str(self.base.spec.post))
+        self.installEdit.insertPlainText(str(self.base.spec.install))
+        self.pretransEdit.insertPlainText(str(self.base.spec.pretrans))
+        self.preEdit.insertPlainText(str(self.base.spec.pre))
+        self.postEdit.insertPlainText(str(self.base.spec.post))
 
     def __init__(self, Wizard, parent=None):
         super(InstallPage, self).__init__(parent)
@@ -622,25 +622,25 @@ class InstallPage(QtWidgets.QWizardPage):
             "</p></body></html>")
 
         pretransLabel = QLabel("%pretrans: ")
-        self.pretransEdit = QTextEdit()
+        self.pretransEdit = QPlainTextEdit()
         pretransLabelText = QLabel(
             self.base.tip_html_style %
             "At the start of transaction.")
 
         preLabel = QLabel("%pre: ")
-        self.preEdit = QTextEdit()
+        self.preEdit = QPlainTextEdit()
         preLabelText = QLabel(
             self.base.tip_html_style %
             "Before a package is installed.")
 
         installLabel = QLabel("%install: ")
-        self.installEdit = QTextEdit()
+        self.installEdit = QPlainTextEdit()
         installLabelText = QLabel(
             self.base.tip_html_style %
             "Script commands to install the program.")
 
         postLabel = QLabel("%post: ")
-        self.postEdit = QTextEdit()
+        self.postEdit = QPlainTextEdit()
         postLabelText = QLabel(
             self.base.tip_html_style %
             "After a package is installed.")
@@ -708,9 +708,10 @@ class InstallPage(QtWidgets.QWizardPage):
 class RequiresPage(QtWidgets.QWizardPage):
 
     def initializePage(self):
-        self.bRequiresEdit.setText('\n'.join(self.base.spec.BuildRequires))
-        self.requiresEdit.setText('\n'.join(self.base.spec.Requires))
-        self.providesEdit.setText('\n'.join(self.base.spec.Provides))
+        self.bRequiresEdit.insertPlainText(
+            '\n'.join(self.base.spec.BuildRequires))
+        self.requiresEdit.insertPlainText('\n'.join(self.base.spec.Requires))
+        self.providesEdit.insertPlainText('\n'.join(self.base.spec.Provides))
 
     def __init__(self, Wizard, parent=None):
         super(RequiresPage, self).__init__(parent)
@@ -721,7 +722,7 @@ class RequiresPage(QtWidgets.QWizardPage):
         self.setSubTitle(self.tr("Write requires and provides"))
 
         buildRequiresLabel = QLabel("BuildRequires: ")
-        self.bRequiresEdit = QTextEdit()
+        self.bRequiresEdit = QPlainTextEdit()
         self.bRequiresEdit.setMaximumHeight(220)
         buildRequiresLabelText = QLabel(
             self.base.tip_html_style %
@@ -735,7 +736,7 @@ class RequiresPage(QtWidgets.QWizardPage):
             "</p></body><html>")
 
         requiresLabel = QLabel("Requires: ")
-        self.requiresEdit = QTextEdit()
+        self.requiresEdit = QPlainTextEdit()
         self.requiresEdit.setMaximumHeight(220)
         requiresLabelText = QLabel(
             self.base.tip_html_style %
@@ -743,7 +744,7 @@ class RequiresPage(QtWidgets.QWizardPage):
              "when the program is installed."))
 
         providesLabel = QLabel("Provides: ")
-        self.providesEdit = QTextEdit()
+        self.providesEdit = QPlainTextEdit()
         providesLabelText = QLabel(
             self.base.tip_html_style %
             "List virtual package names that this package provides.")
@@ -801,9 +802,9 @@ class RequiresPage(QtWidgets.QWizardPage):
 class UninstallPage(QtWidgets.QWizardPage):
 
     def initializePage(self):
-        self.postunEdit.setText(str(self.base.spec.postun))
-        self.preunEdit.setText(str(self.base.spec.preun))
-        self.posttransEdit.setText(str(self.base.spec.posttrans))
+        self.postunEdit.insertPlainText(str(self.base.spec.postun))
+        self.preunEdit.insertPlainText(str(self.base.spec.preun))
+        self.posttransEdit.insertPlainText(str(self.base.spec.posttrans))
 
     def __init__(self, Wizard, parent=None):
         super(UninstallPage, self).__init__(parent)
@@ -820,19 +821,19 @@ class UninstallPage(QtWidgets.QWizardPage):
             "and what to do after uninstallation.<br></p></body></html>")
 
         preunLabel = QLabel("%preun: ")
-        self.preunEdit = QTextEdit()
+        self.preunEdit = QPlainTextEdit()
         preunLabelText = QLabel(
             self.base.tip_html_style %
             "Before a package is uninstalled.")
 
         postunLabel = QLabel("%postun: ")
-        self.postunEdit = QTextEdit()
+        self.postunEdit = QPlainTextEdit()
         postunLabelText = QLabel(
             self.base.tip_html_style %
             "After a package is uninstalled.")
 
         posttransLabel = QLabel("%posttrans: ")
-        self.posttransEdit = QTextEdit()
+        self.posttransEdit = QPlainTextEdit()
         posttransLabelText = QLabel(
             self.base.tip_html_style %
             "At the end of transaction.")
@@ -1038,9 +1039,9 @@ class BuildPage(QtWidgets.QWizardPage):
         self.srpm_dialog = QDialog(self)
         self.srpm_dialog.resize(600, 400)
         self.srpm_dialog.setWindowTitle('Building SRPM')
-        self.srpm_progress = QTextEdit()
+        self.srpm_progress = QPlainTextEdit()
         self.srpm_progress.setReadOnly(True)
-        self.srpm_progress.setText('Building SRPM...')
+        self.srpm_progress.insertPlainText('Building SRPM...')
         self.cancelButton = QPushButton('Cancel')
         self.cancelButton.setMinimumHeight(45)
         self.cancelButton.setMaximumHeight(45)
@@ -1076,9 +1077,9 @@ class BuildPage(QtWidgets.QWizardPage):
         self.rpm_dialog = QDialog(self)
         self.rpm_dialog.resize(600, 400)
         self.rpm_dialog.setWindowTitle('Building RPM')
-        self.rpm_progress = QTextEdit()
+        self.rpm_progress = QPlainTextEdit()
         self.rpm_progress.setReadOnly(True)
-        self.rpm_progress.setText('Building RPM...')
+        self.rpm_progress.insertPlainText('Building RPM...')
         self.cancelButton = QPushButton('Cancel')
         self.cancelButton.setMinimumHeight(45)
         self.cancelButton.setMaximumHeight(45)
@@ -1371,13 +1372,13 @@ class CoprBuildPage(QtWidgets.QWizardPage):
         self.textBuildLabel = QLabel()
 
         self.packageDescLabel = QLabel("Description ")
-        self.packageDescEdit = QTextEdit()
+        self.packageDescEdit = QPlainTextEdit()
         self.packageDescLabelText = QLabel(
             self.base.tip_html_style %
             "Description for your package, optional.")
 
         self.packageInstuctionLabel = QLabel("Instructions ")
-        self.packageInstuctionEdit = QTextEdit()
+        self.packageInstuctionEdit = QPlainTextEdit()
         self.packageInstuctionLabelText = QLabel(
             self.base.tip_html_style %
             ("How install your project, where users can report bugs "
