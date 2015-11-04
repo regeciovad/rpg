@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import (QLabel, QVBoxLayout, QLineEdit, QCheckBox,
                              QGroupBox, QPushButton, QGridLayout,
                              QPlainTextEdit, QFileDialog, QDialog,
-                             QComboBox, QWizard, QFrame)
+                             QComboBox, QWizard, QFrame, QApplication)
 from rpg.gui.dialogs import DialogImport
 from pathlib import Path
 from rpg.command import Command
@@ -479,6 +479,7 @@ class SummaryPage(QtWidgets.QWizardPage):
         else:
             self.base.spec.description = self.descriptionEdit.toPlainText()
         self.base.spec.Summary = self.summaryEdit.text()
+        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.base.run_patched_source_analysis()
         return True
 
@@ -495,6 +496,7 @@ class ScriptsPage(QtWidgets.QWizardPage):
         self.prepareEdit.insertPlainText(str(self.base.spec.prep))
         self.buildEdit.insertPlainText(str(self.base.spec.build))
         self.checkEdit.insertPlainText(str(self.base.spec.check))
+        QApplication.restoreOverrideCursor()
 
     def __init__(self, Wizard, parent=None):
         super(ScriptsPage, self).__init__(parent)
@@ -590,6 +592,7 @@ class ScriptsPage(QtWidgets.QWizardPage):
         self.base.spec.check = Command(self.checkEdit.toPlainText())
         if self.buildArchCheckbox.isChecked():
             self.base.spec.BuildArch = "noarch"
+        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.base.build_project()
         self.base.run_compiled_source_analysis()
         return True
@@ -605,6 +608,7 @@ class InstallPage(QtWidgets.QWizardPage):
         self.pretransEdit.insertPlainText(str(self.base.spec.pretrans))
         self.preEdit.insertPlainText(str(self.base.spec.pre))
         self.postEdit.insertPlainText(str(self.base.spec.post))
+        QApplication.restoreOverrideCursor()
 
     def __init__(self, Wizard, parent=None):
         super(InstallPage, self).__init__(parent)
@@ -697,6 +701,7 @@ class InstallPage(QtWidgets.QWizardPage):
         self.base.spec.pretrans = Command(self.pretransEdit.toPlainText())
         self.base.spec.pre = Command(self.preEdit.toPlainText())
         self.base.spec.post = Command(self.postEdit.toPlainText())
+        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.base.install_project()
         self.base.run_installed_source_analysis()
         return True
@@ -712,6 +717,7 @@ class RequiresPage(QtWidgets.QWizardPage):
             '\n'.join(self.base.spec.BuildRequires))
         self.requiresEdit.insertPlainText('\n'.join(self.base.spec.Requires))
         self.providesEdit.insertPlainText('\n'.join(self.base.spec.Provides))
+        QApplication.restoreOverrideCursor()
 
     def __init__(self, Wizard, parent=None):
         super(RequiresPage, self).__init__(parent)
@@ -878,6 +884,7 @@ class UninstallPage(QtWidgets.QWizardPage):
         self.base.spec.postun = Command(self.postunEdit.toPlainText())
         self.base.spec.preun = Command(self.preunEdit.toPlainText())
         self.base.spec.posttrans = Command(self.posttransEdit.toPlainText())
+        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.base.write_spec()
         return True
 
@@ -888,6 +895,7 @@ class UninstallPage(QtWidgets.QWizardPage):
 class BuildPage(QtWidgets.QWizardPage):
 
     def initializePage(self):
+        QApplication.restoreOverrideCursor()
         self.buildLocationEdit.setText(expanduser("~"))
         self.distro = self.base.target_distro
         self.arch = self.base.target_arch
@@ -1262,6 +1270,7 @@ class CoprLoginPage(QtWidgets.QWizardPage):
         self.base.coprpackageUrl = self.packageUrlEdit.text()
         self.base.coprlogin = self.loginEdit.text()
         self.base.coprtoken = self.tokenEdit.text()
+        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.base.copr_set_config(self.base.coprusername,
                                   self.base.coprlogin, self.base.coprtoken)
         return True
@@ -1271,6 +1280,9 @@ class CoprLoginPage(QtWidgets.QWizardPage):
 
 
 class CoprDistroPage(QtWidgets.QWizardPage):
+
+    def initializePage(self):
+        QApplication.restoreOverrideCursor()
 
     def __init__(self, Wizard, parent=None):
         super(CoprDistroPage, self).__init__(parent)
@@ -1414,6 +1426,7 @@ class CoprBuildPage(QtWidgets.QWizardPage):
         self.setLayout(mainLayout)
 
     def validatePage(self):
+        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.textBuildLabel.setText(
             "<html><head/><body><p align=\"left\"><span" +
             "style=\" font-size:24pt;\">" +
@@ -1463,6 +1476,7 @@ class CoprBuildPage(QtWidgets.QWizardPage):
 class CoprFinalPage(QtWidgets.QWizardPage):
 
     def initializePage(self):
+        QApplication.restoreOverrideCursor()
         self.newproject = self.base.coprusername + \
             "/" + self.base.coprpackageName
         self.webpage = "https://copr.fedoraproject.org/api/coprs/" + \
