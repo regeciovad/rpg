@@ -222,15 +222,16 @@ class Base(object):
 
     def build_srpm(self, path=None):
         """ Builds srpm into base directory. """
+        print('Building SRPM...')
         if not self.spec.Source or not self.archive_path.exists():
             self.create_archive()
         self.write_spec()
+        print('Spec file created.')
         self._package_builder.build_srpm(
             self.spec_path, self.archive_path, self.base_dir)
         if path:
             Command("cp " + path_to_str(self.srpm_path) + " " +
                     str(path)).execute()
-        print ('SRPM pakcage was created.')
 
     def build_rpm(self, target_distro, target_arch, path=None):
         """ Build rpm from srpm. If srpm does not exists,
@@ -281,6 +282,23 @@ class Base(object):
         self._project_builder.build(self.extracted_dir,
                                     self.compiled_dir,
                                     self.spec.build)
+
+    def copr_create_and_build(self, name, chroots, desc, intro, url):
+        print("Creating new project...")
+        try:
+            self.copr_create_project(name, chroots, desc, intro)
+        except:
+            print("Error in creating project! Please check your login.")
+            return
+        print("Creating new project - DONE")
+        print("Build proccess started...")
+        print("It takes a while, but it may be safely interrupted.")
+        try:
+            self.copr_build(name, url)
+        except:
+            print("Error in building project! Please check your url.")
+            return
+        print("Building new project - DONE")
 
     def copr_set_config(self, username, login, token):
         """ Logs into copr with username, login and token.

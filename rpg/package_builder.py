@@ -48,10 +48,12 @@ class PackageBuilder(object):
     def build_srpm(spec_file, tarball, output_dir):
         """ Builds source rpm from spec and tarball and moves it to the
             output directory """
+        print('Starting build command...')
         Command("rpmdev-setuptree").execute()
-        Command("cp " + path_to_str(tarball) +
+        Command("cp -v " + path_to_str(tarball) +
                 ' $(rpm --eval "%{_topdir}")/SOURCES').execute()
-        output = Command("rpmbuild -bs " + path_to_str(spec_file)).execute()
+        output = Command("rpmbuild -bs -v " + path_to_str(spec_file)).execute()
+        print('SRPM package was created.')
         Command("mv " + path_to_str(output.split()[-1]) +
                 " " + path_to_str(output_dir)).execute()
 

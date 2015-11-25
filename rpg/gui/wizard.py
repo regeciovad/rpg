@@ -1049,7 +1049,6 @@ class BuildPage(QtWidgets.QWizardPage):
         self.srpm_dialog.setWindowTitle('Building SRPM')
         self.srpm_progress = QPlainTextEdit()
         self.srpm_progress.setReadOnly(True)
-        self.srpm_progress.insertPlainText('Building SRPM...')
         self.cancelButton = QPushButton('Cancel')
         self.cancelButton.setMinimumHeight(45)
         self.cancelButton.setMaximumHeight(45)
@@ -1057,9 +1056,9 @@ class BuildPage(QtWidgets.QWizardPage):
         self.cancelButton.setMaximumWidth(115)
         self.cancelButton.clicked.connect(self.CancelSRPM)
         mainLayout = QVBoxLayout()
-        mainLayout.addSpacing(50)
+        mainLayout.addSpacing(40)
         mainLayout.addWidget(self.srpm_progress)
-        mainLayout.addSpacing(50)
+        mainLayout.addSpacing(40)
         grid = QGridLayout()
         grid.addWidget(self.cancelButton)
         mainLayout.addLayout(grid)
@@ -1095,9 +1094,9 @@ class BuildPage(QtWidgets.QWizardPage):
         self.cancelButton.setMaximumWidth(115)
         self.cancelButton.clicked.connect(self.CancelRPM)
         mainLayout = QVBoxLayout()
-        mainLayout.addSpacing(50)
+        mainLayout.addSpacing(40)
         mainLayout.addWidget(self.rpm_progress)
-        mainLayout.addSpacing(50)
+        mainLayout.addSpacing(40)
         grid = QGridLayout()
         grid.addWidget(self.cancelButton)
         mainLayout.addLayout(grid)
@@ -1365,12 +1364,11 @@ class CoprBuildPage(QtWidgets.QWizardPage):
 
         self.textBuildLabel.setText(
             "<html><head/><body><p align=\"left\"><span" +
-            "style=\" font-size:24pt;\">" +
-            "New project " + self.newproject +
-            " will be created. <br>" +
+            "style=\" font-size:20pt;\">" +
             "You can also add descriptions and instructions" +
             " for your package. <br>" +
-            "Next step will build package with Copr." +
+            "The build button will create new project " +
+            self.newproject + " and build package with Copr." +
             "</span></p></body></html>")
 
     def __init__(self, Wizard, parent=None):
@@ -1382,7 +1380,6 @@ class CoprBuildPage(QtWidgets.QWizardPage):
         self.setSubTitle(self.tr("Copr additional information"))
 
         self.textBuildLabel = QLabel()
-
         self.packageDescLabel = QLabel("Description ")
         self.packageDescEdit = QPlainTextEdit()
         self.packageDescLabelText = QLabel(
@@ -1415,6 +1412,13 @@ class CoprBuildPage(QtWidgets.QWizardPage):
         gridInstuction.addWidget(self.packageInstuctionEdit, 0, 1, 1, 8)
         gridInstuction.addWidget(self.packageInstuctionLabelText, 1, 0, 1, 8)
 
+        self.coprBuildButton = QPushButton('Build package with Copr')
+        self.coprBuildButton.setMinimumHeight(45)
+        self.coprBuildButton.setMaximumHeight(45)
+        self.coprBuildButton.setMinimumWidth(200)
+        self.coprBuildButton.setMaximumWidth(205)
+        self.coprBuildButton.clicked.connect(self.buildCopr)
+
         mainLayout.addSpacing(25)
         frameDesc.setLayout(gridDesc)
         frameInstuction.setLayout(gridInstuction)
@@ -1423,51 +1427,49 @@ class CoprBuildPage(QtWidgets.QWizardPage):
         mainLayout.addSpacing(15)
         mainLayout.addWidget(frameInstuction)
         mainLayout.addSpacing(15)
+        mainLayout.addWidget(self.coprBuildButton, 0, QtCore.Qt.AlignCenter)
         self.setLayout(mainLayout)
 
     def validatePage(self):
-        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        self.textBuildLabel.setText(
-            "<html><head/><body><p align=\"left\"><span" +
-            "style=\" font-size:24pt;\">" +
-            "Creating new project..." +
-            "</span></p></body></html>")
-        self.textBuildLabel.repaint()
+        return True
+
+    def buildCopr(self):
+        self.copr_dialog = QDialog(self)
+        self.copr_dialog.resize(600, 400)
+        self.copr_dialog.setWindowTitle('Building Copr')
+        self.copr_progress = QPlainTextEdit()
+        self.copr_progress.setReadOnly(True)
+        self.cancelButton = QPushButton('Cancel')
+        self.cancelButton.setMinimumHeight(45)
+        self.cancelButton.setMaximumHeight(45)
+        self.cancelButton.setMinimumWidth(100)
+        self.cancelButton.setMaximumWidth(115)
+        self.cancelButton.clicked.connect(self.CancelCopr)
+        mainLayout = QVBoxLayout()
+        mainLayout.addSpacing(40)
+        mainLayout.addWidget(self.copr_progress)
+        mainLayout.addSpacing(40)
+        grid = QGridLayout()
+        grid.addWidget(self.cancelButton)
+        mainLayout.addLayout(grid)
+        self.copr_dialog.setLayout(mainLayout)
+
+        self.copr_dialog.show()
         self.base.coprdesc = self.packageDescEdit.toPlainText()
         self.base.coprintro = self.packageInstuctionEdit.toPlainText()
-        try:
-            self.base.copr_create_project(self.base.coprpackageName,
+
+        self.copr_process = ThreadWrapper(self.copr_progress,
+                                          self.base.copr_create_and_build,
+                                          self.base.coprpackageName,
                                           self.base.coprversion,
                                           self.base.coprdesc,
-                                          self.base.coprintro)
-        except subprocess.CalledProcessError:
-            self.textBuildLabel.setText(
-                "<html><head/><body><p align=\"left\"><span" +
-                "style=\" font-size:24pt;\" font color=\'#FF3333\'>" +
-                "Error in creating project!" +
-                "<br> Please check your log in information" +
-                "</span></p></body></html>")
-            return False
-        self.textBuildLabel.setText(
-            "<html><head/><body><p align=\"left\"><span" +
-            "style=\" font-size:24pt;\">" +
-            "Creating new project - DONE<br>" +
-            "Build proccess started...<br>" +
-            "It takes a while, but it may be safely interrupted."
-            "</span></p></body></html>")
-        self.textBuildLabel.repaint()
-        try:
-            self.base.copr_build(
-                self.base.coprpackageName, self.base.coprpackageUrl)
-        except subprocess.CalledProcessError:
-            self.textBuildLabel.setText(
-                "<html><head/><body><p align=\"left\"><span" +
-                "style=\" font-size:24pt;\" font color=\'#FF3333\'>" +
-                "Error in building project!" +
-                "<br> Please check your url information" +
-                "</span></p></body></html>")
-            return False
-        return True
+                                          self.base.coprintro,
+                                          self.base.coprpackageUrl)
+        self.copr_process.run()
+
+    def CancelCopr(self):
+        self.copr_dialog.close()
+        self.copr_process.kill()
 
     def nextId(self):
         return Wizard.PageCoprFinal
