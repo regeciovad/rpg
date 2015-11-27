@@ -220,7 +220,7 @@ class Base(object):
         with open(str(self.spec_path), 'w') as spec_file:
             spec_file.write(str(self.spec))
 
-    def build_srpm(self, path=None):
+    def build_srpm(self):
         """ Builds srpm into base directory. """
         print('Building SRPM...')
         if not self.spec.Source or not self.archive_path.exists():
@@ -229,11 +229,8 @@ class Base(object):
         print('Spec file created.')
         self._package_builder.build_srpm(
             self.spec_path, self.archive_path, self.base_dir)
-        if path:
-            Command("cp " + path_to_str(self.srpm_path) + " " +
-                    str(path)).execute()
 
-    def build_rpm(self, target_distro, target_arch, path=None):
+    def build_rpm(self, target_distro, target_arch):
         """ Build rpm from srpm. If srpm does not exists,
             it will be created. """
         try:
@@ -242,18 +239,14 @@ class Base(object):
             self.build_srpm()
         self._package_builder.build_rpm(
             str(self.srpm_path), target_distro, target_arch, self.base_dir)
-        if path:
-            packages = self.rpm_path
-            for package in packages:
-                Command("cp " + str(package) + " " + path).execute()
 
-    def build_rpm_recover(self, distro, arch, path=None):
+    def build_rpm_recover(self, distro, arch):
         """ Repeatedly build rpm with mock and finds all build errors.
             May raise RuntimeError on failed recover. """
 
         def build():
             self.build_srpm()
-            self.build_rpm(distro, arch, path)
+            self.build_rpm(distro, arch)
 
         def analyse():
             _files_to_pkgs.installed(self.base_dir, self.spec, self.sack)

@@ -60,4 +60,3 @@ class ThreadWrapper():
         """ Appends output from function to the GUI widget. """
         while self._process.is_alive():
             self._widget.appendPlainText(self._queue.get())
-            self._widget.repaint()

@@ -1066,13 +1066,15 @@ class BuildPage(QtWidgets.QWizardPage):
 
         self.srpm_dialog.show()
         self.srpm_process = ThreadWrapper(self.srpm_progress,
-                                          self.base.build_srpm,
-                                          self.base.final_path)
+                                          self.base.build_srpm)
         self.srpm_process.run()
 
     def CancelSRPM(self):
         self.srpm_dialog.close()
         self.srpm_process.kill()
+        if self.base.srpm_path:
+            Command("cp " + str(self.base.srpm_path) + " " +
+                    str(self.base.final_path)).execute()
         self.textBuildSRPMLabel.setText('Your source package was build in '
                                         + self.base.final_path)
 
@@ -1107,13 +1109,16 @@ class BuildPage(QtWidgets.QWizardPage):
         self.rpm_dialog.show()
         self.rpm_process = ThreadWrapper(self.rpm_progress,
                                          self.base.build_rpm_recover,
-                                         distro, arch,
-                                         self.base.final_path)
+                                         distro, arch)
         self.rpm_process.run()
 
     def CancelRPM(self):
         self.rpm_dialog.close()
         self.rpm_process.kill()
+        if self.base.rpm_path:
+            for package in self.base.rpm_path:
+                Command("cp " + str(package) + " " +
+                        str(self.base.final_path)).execute()
         self.textBuildRPMLabel.setText(
             'Your package was build in ' + self.base.final_path)
 
