@@ -106,6 +106,7 @@ class ImportPage(QtWidgets.QWizardPage):
         super(ImportPage, self).__init__(parent)
 
         self.base = Wizard.base
+        self.new_thread = None
         self.redQLineEdit = ("QLineEdit { border-style: solid;" +
                              "border-width: 1px;" +
                              "border-color: #FF3333;" +
@@ -249,9 +250,10 @@ class ImportPage(QtWidgets.QWizardPage):
         """ Stops the thread (there are no official way to stop thread.
             This will unlocked thread and it will be stopped
             with GUI - without error). """
-        self.new_thread._tstate_lock = None
-        self.new_thread._stop()
-        self.new_thread.join()
+        if self.new_thread:
+            self.new_thread._tstate_lock = None
+            self.new_thread._stop()
+            self.new_thread.join()
 
     def nextId(self):
         ''' [int] Function that determines the next page after the current one
