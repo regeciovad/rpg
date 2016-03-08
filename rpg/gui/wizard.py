@@ -9,6 +9,7 @@ from pathlib import Path
 from rpg.command import Command
 import subprocess
 import platform
+import urllib.request
 from threading import Thread
 from rpg.gui.thread import ThreadWrapper
 
@@ -202,12 +203,7 @@ class ImportPage(QtWidgets.QWizardPage):
         self.setLayout(mainLayout)
 
     def checkPath(self):
-        ''' Checks, if path to import is correct while typing'''
-        path = Path(self.importEdit.text())
-        if(path.exists()):
-            self.importEdit.setStyleSheet("")
-        else:
-            self.importEdit.setStyleSheet(self.redQLineEdit)
+        self.importEdit.setStyleSheet("")
 
     def importPath(self):
         ''' Returns path selected file or archive'''
@@ -230,21 +226,26 @@ class ImportPage(QtWidgets.QWizardPage):
             ###### Setting up RPG class references ###### '''
 
         # Verifying path
+        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         path = Path(self.importEdit.text())
-        if(path.exists()):
-            self.base.target_arch = self.ArchEdit.currentText()
-            self.base.target_distro = self.DistroEdit.currentText()
-            self.base.load_project_from_url(self.importEdit.text().strip())
-            self.base.run_extracted_source_analysis()
-            self.new_thread = Thread(
-                target=self.base.fetch_repos, args=(self.base.target_distro,
-                                                    self.base.target_arch))
-            self.new_thread.start()
-            self.importEdit.setStyleSheet("")
-            return True
-        else:
-            self.importEdit.setStyleSheet(self.redQLineEdit)
-            return False
+        if not (path.exists()):
+            urlpath = self.importEdit.text()
+            try:
+                urllib.request.urlopen(urlpath)
+            except:
+                self.importEdit.setStyleSheet(self.redQLineEdit)
+                QApplication.restoreOverrideCursor()
+                return False
+        self.base.target_arch = self.ArchEdit.currentText()
+        self.base.target_distro = self.DistroEdit.currentText()
+        self.base.load_project_from_url(self.importEdit.text().strip())
+        self.base.run_extracted_source_analysis()
+        self.new_thread = Thread(
+            target=self.base.fetch_repos, args=(self.base.target_distro,
+                                                self.base.target_arch))
+        self.new_thread.start()
+        self.importEdit.setStyleSheet("")
+        return True
 
     def cleanupPage(self):
         """ Stops the thread (there are no official way to stop thread.
@@ -271,6 +272,7 @@ class MandatoryPage(QtWidgets.QWizardPage):
         self.releaseEdit.setText("1")
         self.licenseEdit.setText(str(self.base.spec.License))
         self.URLEdit.setText(str(self.base.spec.URL))
+        QApplication.restoreOverrideCursor()
 
     def __init__(self, Wizard, parent=None):
         super(MandatoryPage, self).__init__(parent)
